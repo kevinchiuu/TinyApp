@@ -7,7 +7,7 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
 const generateRandomString = function() {
-  return Math.random.toString(36).slice(2, 8);
+  return Math.random().toString(36).slice(2, 8);
 };
 
 const urlDatabase = {
@@ -28,6 +28,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// this GET route is used to show the form
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
@@ -37,9 +38,32 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+//redirect shortURL to the longURL
+app.get("/u/:shortURL", (req, res) => {
+
+  const longURL = urlDatabase[req.params.shortURL];
+
+  if (!longURL) {
+    return res.status('404').send("Error, Page not found");
+  }
+
+  res.redirect(longURL);
+});
+
+//makes sure a key-value pair (shortURL: longURL) is added and saved to urlDatabase when receiving POST request
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("Ok");
+
+  const shortURL = generateRandomString();
+
+  const {longURL} = req.body;
+
+  //console.log(req.body);
+  //res.send("Ok");
+
+  urlDatabase[shortURL] = longURL;
+  
+  //redirect to /urls/:shortURL where shortURL is the random string generated
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.listen(PORT, () => {
