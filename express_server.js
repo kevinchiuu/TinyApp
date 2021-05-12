@@ -35,7 +35,6 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const templateVars = { shortURL, longURL: urlDatabase[shortURL] };
-  console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
@@ -77,12 +76,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //post to update the url in the urlDatabase
 app.post("/urls/:id", (req, res) => {
-  console.log("string updated")
-  const { longURL } = req.body;
 
-  console.log("req body", req.body);
-  console.log("req params", req.params);
-  console.log("long url",longURL);
+  const { longURL } = req.body;
 
   urlDatabase[req.params.id] = longURL;
 
