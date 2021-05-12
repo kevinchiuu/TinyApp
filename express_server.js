@@ -28,20 +28,21 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// this GET route is used to show the form
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
+  const shortURL = req.params.shortURL;
+  const templateVars = { shortURL, longURL: urlDatabase[shortURL] };
+  console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
 //redirect shortURL to the longURL
-app.get("/u/:shortURL", (req, res) => {
+app.get("/u/:id", (req, res) => {
 
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.id];
 
   if (!longURL) {
     return res.status('404').send("Error, Page not found");
@@ -72,6 +73,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
   res.redirect('/urls');
 
+});
+
+//post to update the url in the urlDatabase
+app.post("/urls/:id", (req, res) => {
+  console.log("string updated")
+  const { longURL } = req.body;
+
+  console.log("req body", req.body);
+  console.log("req params", req.params);
+  console.log("long url",longURL);
+
+  urlDatabase[req.params.id] = longURL;
+
+  res.redirect('/urls');
 });
 
 app.listen(PORT, () => {
