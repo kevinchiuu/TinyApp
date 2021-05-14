@@ -1,8 +1,10 @@
 const express = require("express");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
+const saltRounds = 10;
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -16,6 +18,11 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+// const urlDatabase = {
+//   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+//   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+// };
 
 const users = {
   "userRandomID": {
@@ -37,14 +44,6 @@ const getUserByEmail = function(email) {
     }
   }
   return false;
-};
-
-const registerUser = function(email, password) {
-  users[email] = {
-    id: email,
-    email,
-    password,
-  };
 };
 
 const userCheck = function(username) {
@@ -91,7 +90,7 @@ app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
   if (!longURL) {
-    return res.status('404').send("Error, Page not found");
+    return res.status('404').send("<h1> Error, Page not found </h1>");
   }
 
   res.redirect(longURL);
@@ -160,10 +159,12 @@ app.post("/logout", (req, res) => {
 
 //register route
 app.get("/register", (req, res) => {
-  const templateVars = {
-    user: req.cookies["username"]
-  };
 
+  const templateVars = {
+    user: req.cookies["username"],
+
+  };
+  
   res.render("register", templateVars);
 });
 
@@ -172,20 +173,26 @@ app.post("/register", (req, res) => {
 
   const { email, password } = req.body;
 
-  const newUser = registerUser(email, password);
-  console.log(users);
-
   if (email === "" || password === "") {
     return res.status('400').send("<h1> Must enter an email address or password! </h1>");
-  }
 
-  if (userCheck(email)) {
+  } else if (userCheck(email)) {
     return res.status('400').send("<h1> This email is already registered </h1>");
+
+  } else {
+    const newUserID = generateRandomString();
+
+    users[newUserID] = {
+      id: newUserID,
+      email,
+      password
+    };
+
+    res.cookie('username', newUserID);
+    res.redirect("/urls");
   }
 
-  res.redirect("/urls");
 });
-
 
 
 app.listen(PORT, () => {
