@@ -46,9 +46,9 @@ const getUserByEmail = function(email) {
   return false;
 };
 
-const userCheck = function(username) {
+const userCheck = function(email) {
   for (let userId in users) {
-    if (users[userId].email === username) {
+    if (users[userId].email === email) {
       return true;
     }
   }
@@ -64,18 +64,26 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// GET URLS
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    user: req.cookies["username"]
+    user: req.cookies["user_id"]
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    user: req.cookies["username"]
+    user: req.cookies["user_id"]
   };
+
+  // if (req.cookies["username"]) {
+
+  // } else {
+  //   res.redirect('/login');
+  // }
+
   res.render("urls_new", templateVars);
 });
 
@@ -129,7 +137,7 @@ app.post("/urls/:id", (req, res) => {
 //displays the login form
 app.get("/login", (req, res) => {
   const templateVars = {
-    user: req.cookies["username"]
+    user: req.cookies["user_id"]
   };
 
   res.render("login", templateVars);
@@ -152,7 +160,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
 
   res.redirect("/login");
 });
@@ -161,7 +169,7 @@ app.post("/logout", (req, res) => {
 app.get("/register", (req, res) => {
 
   const templateVars = {
-    user: req.cookies["username"],
+    user: req.cookies["user_id"],
 
   };
   
@@ -188,10 +196,9 @@ app.post("/register", (req, res) => {
       password
     };
 
-    res.cookie('username', newUserID);
+    res.cookie('user_id', newUserID);
     res.redirect("/urls");
   }
-
 });
 
 
