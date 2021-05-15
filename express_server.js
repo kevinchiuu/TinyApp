@@ -67,13 +67,33 @@ const urlsForUser = function(id) {
   return userDB;
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
+//displays the login form
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: req.cookies["user_id"]
+  };
+
+  res.render("login", templateVars);
 });
 
-//delete this route later on at end of project
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+app.post("/login", (req, res) => {
+  //extract the email and password from req.body
+  const { email, password } = req.body;
+
+  const userFound = getUserByEmail(email);
+
+  if (userFound && userFound.password === password) {
+    res.cookie('user_id', userFound.id);
+
+    res.redirect('/urls');
+
+  } else {
+    res.status('401').send("<h1> Error wrong user! </h1>");
+  }
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello!");
 });
 
 // shows urlDB table
@@ -83,6 +103,16 @@ app.get("/urls", (req, res) => {
     user: req.cookies["user_id"]
   };
   res.render("urls_index", templateVars);
+
+  // if (req.cookies["user_id"]) {
+  //   const templateVars = {
+  //     urls: urlsForUser(req.cookies["user_id"]),
+  //     user: req.cookies["user_id"]
+  //   };
+  //   res.render("urls_index", templateVars);
+  // } else {
+  //   res.redirect("/login");
+  // }
 });
 
 // create new TinyURL route
@@ -98,12 +128,13 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  // const shortURL = req.params.shortURL;
-  // const templateVars = { shortURL, longURL: urlDatabase[shortURL] };
-  // res.render("urls_show", templateVars);
   if (req.cookies["user_id"]) {
     const shortURL = req.params.shortURL;
-    const templateVars = { shortURL, longURL: urlDatabase[shortURL] };
+    const templateVars = {
+      shortURL,
+      longURL: urlDatabase[shortURL].longURL,
+      user: req.cookies["user_id"]
+    };
     res.render("urls_show", templateVars);
   } else {
     res.redirect("/login");
@@ -112,7 +143,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //redirect shortURL to the longURL
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.id].longURL;
 
   if (!longURL) {
     return res.status('404').send("<h1> Error, Page not found </h1>");
@@ -141,7 +172,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     delete urlDatabase[shortURL];
   
     res.redirect('/urls');
-    
+
   } else {
     res.redirect("/login");
   }
@@ -151,34 +182,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const { longURL } = req.body;
 
-  urlDatabase[req.params.id] = longURL;
+  urlDatabase[req.params.id].longURL = longURL;
+
+  console.log(longURL);
+  console.log(urlDatabase);
 
   res.redirect('/urls');
-});
-
-//displays the login form
-app.get("/login", (req, res) => {
-  const templateVars = {
-    user: req.cookies["user_id"]
-  };
-
-  res.render("login", templateVars);
-});
-
-app.post("/login", (req, res) => {
-  //extract the email and password from req.body
-  const { email, password } = req.body;
-
-  const userFound = getUserByEmail(email);
-
-  if (userFound && userFound.password === password) {
-    res.cookie('user_id', userFound.id);
-
-    res.redirect('/urls');
-
-  } else {
-    res.status('401').send("<h1> Error wrong user! </h1>");
-  }
 });
 
 app.post("/logout", (req, res) => {
