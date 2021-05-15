@@ -21,7 +21,7 @@
     </div>
 
     <form method="POST" action="/logout">
-      <% if (!user) { %>
+      <% if (!locals.user) { %>
         <a href="/login" class="mr-3" style="color:white"> Login </a>
         <a href="/register" style="color: white"> Register </a>
 
