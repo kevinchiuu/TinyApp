@@ -14,11 +14,6 @@ const generateRandomString = function() {
   return Math.random().toString(36).slice(2, 8);
 };
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
-
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
@@ -60,7 +55,9 @@ const urlsForUser = function(id) {
 
   for (let url in urlDatabase) {
     if (urlDatabase[url].userID === id) {
-      userDB[url] = urlDatabase[url].longURL;
+      userDB[url] = {
+        longURL: urlDatabase[url].longURL
+      };
     }
   }
 
@@ -76,13 +73,14 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
+// checks if email and passwords match usersDB email and passwords
 app.post("/login", (req, res) => {
   //extract the email and password from req.body
   const { email, password } = req.body;
 
   const userFound = getUserByEmail(email);
 
-  if (userFound && userFound.password === password) {
+  if (userFound && bcrypt.compareSync(password, userFound.password)) {
     res.cookie('user_id', userFound.id);
 
     res.redirect('/urls');
@@ -98,21 +96,17 @@ app.get("/", (req, res) => {
 
 // shows urlDB table
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: req.cookies["user_id"]
-  };
-  res.render("urls_index", templateVars);
+  if (req.cookies["user_id"]) {
+    const templateVars = {
+      //urls: urlsForUser(req.cookies["user_id"]),
+      urls: urlDatabase,
+      user: req.cookies["user_id"]
+    };
+    res.render("urls_index", templateVars);
 
-  // if (req.cookies["user_id"]) {
-  //   const templateVars = {
-  //     urls: urlsForUser(req.cookies["user_id"]),
-  //     user: req.cookies["user_id"]
-  //   };
-  //   res.render("urls_index", templateVars);
-  // } else {
-  //   res.redirect("/login");
-  // }
+  } else {
+    res.redirect("/login");
+  }
 });
 
 // create new TinyURL route
@@ -224,7 +218,7 @@ app.post("/register", (req, res) => {
     users[newUserID] = {
       id: newUserID,
       email,
-      password
+      password: bcrypt.hashSync(password, saltRounds)
     };
 
     res.cookie('user_id', newUserID);
