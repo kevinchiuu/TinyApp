@@ -73,18 +73,15 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// if user is not able to access /urls/new if not logged in
 app.get("/urls/new", (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (req.cookies["username"]) {
     const templateVars = {
       user: req.cookies["user_id"]
     };
-
     res.render("urls_new", templateVars);
   } else {
-    res.redirect("/login");
+    res.redirect('/login');
   }
-
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -151,6 +148,7 @@ app.post("/login", (req, res) => {
 
   if (userFound && userFound.password === password) {
     res.cookie('user_id', userFound.id);
+
     res.redirect('/urls');
 
   } else {
@@ -158,7 +156,6 @@ app.post("/login", (req, res) => {
   }
 });
 
-// logout and clear cookies
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
 
@@ -167,8 +164,10 @@ app.post("/logout", (req, res) => {
 
 //register route
 app.get("/register", (req, res) => {
+
   const templateVars = {
     user: req.cookies["user_id"],
+
   };
   
   res.render("register", templateVars);
@@ -176,6 +175,7 @@ app.get("/register", (req, res) => {
 
 //
 app.post("/register", (req, res) => {
+
   const { email, password } = req.body;
 
   if (email === "" || password === "") {
