@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
@@ -14,11 +15,13 @@ const generateRandomString = function() {
   return Math.random().toString(36).slice(2, 8);
 };
 
+// url database
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
+//users database
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -121,6 +124,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+// after a user creaters a new url, the route will be redirected to the urls page
 app.get("/urls/:shortURL", (req, res) => {
   if (req.cookies["user_id"]) {
     const shortURL = req.params.shortURL;
@@ -146,7 +150,7 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-//post request to make sure the key-value pair (shortURL: longURL) is added and saved to urlDatabase
+//make sure the key-value pair (shortURL: longURL) is added and saved to urlDatabase
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
 
@@ -184,6 +188,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect('/urls');
 });
 
+// after a user is logged out, clear all cookies
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
 
@@ -192,7 +197,6 @@ app.post("/logout", (req, res) => {
 
 //register route
 app.get("/register", (req, res) => {
-
   const templateVars = {
     user: req.cookies["user_id"],
 
@@ -201,7 +205,8 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
-//
+// add user to the userDb.
+// if user already exists inside the userDb a message will be sent saying so.
 app.post("/register", (req, res) => {
 
   const { email, password } = req.body;
