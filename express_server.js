@@ -75,7 +75,12 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session["user_id"]) {
+    res.redirect("/urls");
+
+  } else {
+    res.redirect("/login");
+  }
 });
 
 // shows urlDB table
@@ -175,7 +180,7 @@ app.post("/urls/:id", (req, res) => {
 // after a user is logged out, clear all cookies
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/login");
+  res.redirect("/urls");
 });
 
 //register users
