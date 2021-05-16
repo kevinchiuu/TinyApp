@@ -141,7 +141,6 @@ app.post("/urls", (req, res) => {
     longURL,
     userID: req.session["user_id"]
   };
-  console.log(urlDatabase);
   
   //redirect to /urls/:shortURL where shortURL is the random string generated
   res.redirect(`/urls/${shortURL}`);
