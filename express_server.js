@@ -65,7 +65,6 @@ app.post("/login", (req, res) => {
   const userFound = getUserByEmail(email, users);
 
   if (userFound && bcrypt.compareSync(password, userFound.password)) {
-    //res.cookie('user_id', userFound.id);
     req.session['user_id'] = userFound.id;
 
     res.redirect('/urls');
@@ -83,8 +82,7 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   if (req.session["user_id"]) {
     const templateVars = {
-      //urls: urlsForUser(req.cookies["user_id"]),
-      urls: urlDatabase,
+      urls: urlsForUser(req.session["user_id"]),
       user: req.session["user_id"]
     };
     res.render("urls_index", templateVars);
@@ -121,7 +119,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
-//redirect shortURL to the longURL
+// redirect shortURL to the longURL
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id].longURL;
 
@@ -132,19 +130,24 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-//make sure the key-value pair (shortURL: longURL) is added and saved to urlDatabase
+// make sure the new shortURL created is added and saved to urlDatabase
+// only registered users can create their own shortURLs
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
 
   const {longURL} = req.body;
 
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {
+    longURL,
+    userID: req.session["user_id"]
+  };
+  console.log(urlDatabase);
   
   //redirect to /urls/:shortURL where shortURL is the random string generated
   res.redirect(`/urls/${shortURL}`);
 });
 
-//post request to delete a URL from the urlDatabase
+// delete a URL from the urlDatabase
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session["user_id"]) {
     const shortURL = req.params.shortURL;
@@ -158,7 +161,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
-//post to update the url in the urlDatabase
+//update the url in the urlDatabase
 app.post("/urls/:id", (req, res) => {
   const { longURL } = req.body;
 
@@ -176,7 +179,7 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 });
 
-//register route
+//register users
 app.get("/register", (req, res) => {
   const templateVars = {
     user: req.session["user_id"],
