@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
+const { generateRandomString, getUserByEmail, userCheck } = require('./helpers');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
@@ -10,10 +11,6 @@ const saltRounds = 10;
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
-
-const generateRandomString = function() {
-  return Math.random().toString(36).slice(2, 8);
-};
 
 // url database
 const urlDatabase = {
@@ -33,24 +30,6 @@ const users = {
     email: "user2@example.com",
     password: bcrypt.hashSync("1234", saltRounds)
   }
-};
-
-const getUserByEmail = function(email) {
-  for (let userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];
-    }
-  }
-  return false;
-};
-
-const userCheck = function(email) {
-  for (let userId in users) {
-    if (users[userId].email === email) {
-      return true;
-    }
-  }
-  return false;
 };
 
 const urlsForUser = function(id) {
@@ -81,7 +60,7 @@ app.post("/login", (req, res) => {
   //extract the email and password from req.body
   const { email, password } = req.body;
 
-  const userFound = getUserByEmail(email);
+  const userFound = getUserByEmail(email, users);
 
   if (userFound && bcrypt.compareSync(password, userFound.password)) {
     res.cookie('user_id', userFound.id);
@@ -205,8 +184,8 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
-// add user to the userDb.
-// if user already exists inside the userDb a message will be sent saying so.
+// add user to the userdb.
+// if user already exists inside the user db, then a message will be printed out accordingly
 app.post("/register", (req, res) => {
 
   const { email, password } = req.body;
@@ -214,7 +193,7 @@ app.post("/register", (req, res) => {
   if (email === "" || password === "") {
     return res.status('400').send("<h1> Must enter an email address or password! </h1>");
 
-  } else if (userCheck(email)) {
+  } else if (userCheck(email, users)) {
     return res.status('400').send("<h1> This email is already registered </h1>");
 
   } else {
