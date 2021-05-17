@@ -16,8 +16,8 @@ app.use(cookieSession({
 
 // url database
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "user2@example.com" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2@example.com" }
 };
 
 //users database
@@ -51,7 +51,7 @@ const urlsForUser = function(id) {
 //displays the login form
 app.get("/login", (req, res) => {
   const templateVars = {
-    user: req.session["user_id"]
+    users: req.session["user_id"]
   };
 
   res.render("login", templateVars);
@@ -88,7 +88,7 @@ app.get("/urls", (req, res) => {
   if (req.session["user_id"]) {
     const templateVars = {
       urls: urlsForUser(req.session["user_id"]),
-      user: req.session["user_id"]
+      users: req.session["user_id"]
     };
     res.render("urls_index", templateVars);
 
@@ -101,7 +101,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   if (req.session["user_id"]) {
     const templateVars = {
-      user: req.session["user_id"]
+      users: req.session["user_id"]
     };
     res.render("urls_new", templateVars);
   } else {
@@ -116,7 +116,7 @@ app.get("/urls/:shortURL", (req, res) => {
     const templateVars = {
       shortURL,
       longURL: urlDatabase[shortURL].longURL,
-      user: req.session["user_id"]
+      users: req.session["user_id"]
     };
     res.render("urls_show", templateVars);
   } else {
@@ -167,11 +167,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //update the url in the urlDatabase
 app.post("/urls/:id", (req, res) => {
-  const { longURL } = req.body;
+  if (req.session["user_id"]) {
+    const { longURL } = req.body;
 
-  urlDatabase[req.params.id].longURL = longURL;
-
-  res.redirect('/urls');
+    urlDatabase[req.params.id].longURL = longURL;
+  
+    res.redirect('/urls');
+  } else {
+    res.status('400').send("<h1> user is not logged in </h1>");
+  }
 });
 
 // after a user is logged out, clear all cookies
@@ -183,7 +187,7 @@ app.post("/logout", (req, res) => {
 //register users
 app.get("/register", (req, res) => {
   const templateVars = {
-    user: req.session["user_id"],
+    users: req.session["user_id"],
   };
   
   res.render("register", templateVars);

@@ -21,13 +21,13 @@
     </div>
 
     <form method="POST" action="/logout">
-      <% if (!locals.user) { %>
+      <% if (!locals.users) { %>
         <a href="/login" class="mr-3" style="color:white"> Login </a>
         <a href="/register" style="color: white"> Register </a>
 
       <% } else { %>
         <div> 
-          <div style="font-weight: bold; display: inline-block;"> Logged in as: <%=locals.user %> </div>
+          <div style="font-weight: bold; display: inline-block;"> Logged in as: <%=locals.users %> </div>
           <a href="/login" class=ml-2> <button type="submit" class="btn btn-outline-dark"> logout </button> </a>
         </div>
       <% } %>  
