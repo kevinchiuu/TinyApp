@@ -128,7 +128,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id].longURL;
 
-  if (!longURL) {
+  if (!req.session["user_id"]) {
     return res.status('404').send("<h1> Error, Page not found </h1>");
   }
 
