@@ -120,19 +120,24 @@ app.get("/urls/:shortURL", (req, res) => {
     };
     res.render("urls_show", templateVars);
   } else {
-    res.redirect("/login");
+    res.status('404').send("<h1> Error </h1>");
   }
 });
 
 // redirect shortURL to the longURL
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id].longURL;
 
   if (!req.session["user_id"]) {
     return res.status('404').send("<h1> Error, Page not found </h1>");
   }
 
-  res.redirect(longURL);
+  const longURL = urlDatabase[req.params.id].longURL;
+
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    res.status('401').send("<h1> Error page doesnt exist! </h1>");
+  }
 });
 
 // make sure the new shortURL created is added and saved to urlDatabase
