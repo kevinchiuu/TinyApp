@@ -65,7 +65,7 @@ app.post("/login", (req, res) => {
   const userFound = getUserByEmail(email, users);
 
   if (userFound && bcrypt.compareSync(password, userFound.password)) {
-    req.session['user_id'] = userFound.id;
+    req.session['user_id'] = userFound.email;
 
     res.redirect('/urls');
 
@@ -171,9 +171,6 @@ app.post("/urls/:id", (req, res) => {
 
   urlDatabase[req.params.id].longURL = longURL;
 
-  console.log(longURL);
-  console.log(urlDatabase);
-
   res.redirect('/urls');
 });
 
@@ -213,7 +210,7 @@ app.post("/register", (req, res) => {
       password: bcrypt.hashSync(password, saltRounds)
     };
 
-    req.session['user_id'] = newUserID;
+    req.session['user_id'] = email;
     res.redirect("/urls");
   }
 });
