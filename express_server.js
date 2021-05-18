@@ -125,18 +125,9 @@ app.get("/urls/:shortURL", (req, res) => {
     res.status(404).send("<h1> Error </h1>");
   }
 
-  // if (req.session["user_id"] === urlDatabase[shortURL].userID) {
-  //   const templateVars = {
-  //     shortURL,
-  //     longURL: urlDatabase[shortURL].longURL,
-  //     users: req.session["user_id"]
-  //   };
-  //   return res.render('urls_show', templateVars);
-  // } else {
-  //   res.status(404).send("<h1> you aren't allowed to view this page </h1>");
-  // }
-
-
+  if (!urlDatabase[shortURL]) {
+    res.status(404).send("<h1> You are not allowed to view this page </h1>");
+  }
 });
 
 // redirect shortURL to the longURL
@@ -190,7 +181,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   } else {
     res.redirect("/login");
   }
-  
+
 });
 
 //update the url in the urlDatabase
