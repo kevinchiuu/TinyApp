@@ -25,7 +25,7 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: bcrypt.hashSync("purple-monkey-dinosaur", saltRounds)
+    password: bcrypt.hashSync("test", saltRounds)
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -70,14 +70,14 @@ app.post("/login", (req, res) => {
     res.redirect('/urls');
 
   } else {
-    res.status('401').send("<h1> Error wrong user! </h1>");
+    res.status(401).send("<h1> Error wrong user! </h1>");
   }
 });
 
 app.get("/", (req, res) => {
   if (req.session["user_id"]) {
     res.redirect("/urls");
-
+ 
   } else {
     res.redirect("/login");
   }
@@ -111,8 +111,10 @@ app.get("/urls/new", (req, res) => {
 
 // after a user creaters a new url, the route will be redirected to the urls page
 app.get("/urls/:shortURL", (req, res) => {
-  if (req.session["user_id"]) {
-    const shortURL = req.params.shortURL;
+
+  const shortURL = req.params.shortURL;
+
+  if (req.session["user_id"] && req.session["user_id"] === urlDatabase[shortURL].userID) {
     const templateVars = {
       shortURL,
       longURL: urlDatabase[shortURL].longURL,
@@ -120,15 +122,28 @@ app.get("/urls/:shortURL", (req, res) => {
     };
     res.render("urls_show", templateVars);
   } else {
-    res.status('404').send("<h1> Error </h1>");
+    res.status(404).send("<h1> Error </h1>");
   }
+
+  // if (req.session["user_id"] === urlDatabase[shortURL].userID) {
+  //   const templateVars = {
+  //     shortURL,
+  //     longURL: urlDatabase[shortURL].longURL,
+  //     users: req.session["user_id"]
+  //   };
+  //   return res.render('urls_show', templateVars);
+  // } else {
+  //   res.status(404).send("<h1> you aren't allowed to view this page </h1>");
+  // }
+
+
 });
 
 // redirect shortURL to the longURL
 app.get("/u/:id", (req, res) => {
 
   if (!req.session["user_id"]) {
-    return res.status('404').send("<h1> Error, Page not found </h1>");
+    return res.status(404).send("<h1> Error, Page not found </h1>");
   }
 
   const longURL = urlDatabase[req.params.id].longURL;
@@ -136,29 +151,36 @@ app.get("/u/:id", (req, res) => {
   if (longURL) {
     res.redirect(longURL);
   } else {
-    res.status('401').send("<h1> Error page doesnt exist! </h1>");
+    res.status(404).send("<h1> Error page doesnt exist! </h1>");
   }
 });
 
 // make sure the new shortURL created is added and saved to urlDatabase
 // only registered users can create their own shortURLs
 app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
 
-  const {longURL} = req.body;
+  if (req.session["user_id"]) {
 
-  urlDatabase[shortURL] = {
-    longURL,
-    userID: req.session["user_id"]
-  };
-  
-  //redirect to /urls/:shortURL where shortURL is the random string generated
-  res.redirect(`/urls/${shortURL}`);
+    const shortURL = generateRandomString();
+
+    const {longURL} = req.body;
+
+    urlDatabase[shortURL] = {
+      longURL,
+      userID: req.session["user_id"]
+    };
+    
+    //redirect to /urls/:shortURL where shortURL is the random string generated
+    res.redirect(`/urls/${shortURL}`);
+  } else {
+    res.status(404).send("<h1> error </h1>");
+  }
 });
 
 // delete a URL from the urlDatabase
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (req.session["user_id"]) {
+
+  if (req.session["user_id"] === urlDatabase[req.params.shortURL].userID) {
     const shortURL = req.params.shortURL;
 
     delete urlDatabase[shortURL];
@@ -168,19 +190,21 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   } else {
     res.redirect("/login");
   }
+  
 });
 
 //update the url in the urlDatabase
 app.post("/urls/:id", (req, res) => {
-  if (req.session["user_id"]) {
+  if (req.session["user_id"] === urlDatabase[req.params.shortURL].userID) {
     const { longURL } = req.body;
 
     urlDatabase[req.params.id].longURL = longURL;
   
     res.redirect('/urls');
   } else {
-    res.status('400').send("<h1> user is not logged in </h1>");
+    res.status(400).send("<h1> user is not logged in </h1>");
   }
+  console.log(urlDatabase);
 });
 
 // after a user is logged out, clear all cookies
@@ -205,10 +229,10 @@ app.post("/register", (req, res) => {
   const { email, password } = req.body;
 
   if (email === "" || password === "") {
-    return res.status('400').send("<h1> Must enter an email address or password! </h1>");
+    return res.status(400).send("<h1> Must enter an email address or password! </h1>");
 
   } else if (userCheck(email, users)) {
-    return res.status('400').send("<h1> This email is already registered </h1>");
+    return res.status(400).send("<h1> This email is already registered </h1>");
 
   } else {
     const newUserID = generateRandomString();
