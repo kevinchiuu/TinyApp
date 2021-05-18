@@ -132,11 +132,6 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // redirect shortURL to the longURL
 app.get("/u/:id", (req, res) => {
-
-  if (!req.session["user_id"]) {
-    return res.status(404).send("<h1> Error, Page not found </h1>");
-  }
-
   const longURL = urlDatabase[req.params.id].longURL;
 
   if (longURL) {
