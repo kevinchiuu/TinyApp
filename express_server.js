@@ -181,7 +181,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //update the url in the urlDatabase
 app.post("/urls/:id", (req, res) => {
-  if (req.session["user_id"] === urlDatabase[req.params.shortURL].userID) {
+  if (req.session["user_id"] === urlDatabase[req.params.id].userID) {
     const { longURL } = req.body;
 
     urlDatabase[req.params.id].longURL = longURL;
