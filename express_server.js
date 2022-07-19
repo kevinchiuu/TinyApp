@@ -4,7 +4,6 @@ const cookieSession = require('cookie-session');
 const { generateRandomString, getUserByEmail, userCheck } = require('./helpers');
 const bcrypt = require('bcrypt');
 const app = express();
-const PORT = 8080;
 const saltRounds = 10;
 
 app.set("view engine", "ejs");
@@ -235,6 +234,6 @@ app.post("/register", (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+app.listen(process.env.PORT || 8080, () => {
+  console.log(`Example app listening on port ${process.env.PORT}!`);
 });
